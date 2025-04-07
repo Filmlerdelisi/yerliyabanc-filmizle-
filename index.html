@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>yerliyabancıfilmizle | Prens Dizisi</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #111;
+      color: #eee;
+    }
+
+    header {
+      background-color: #1b1b1b;
+      padding: 20px 0;
+      text-align: center;
+      border-bottom: 3px solid #4CAF50;
+    }
+
+    header h1 {
+      color: #4CAF50;
+      font-size: 26px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+
+    iframe {
+      width: 100%;
+      height: 420px;
+      border-radius: 8px;
+      border: none;
+    }
+
+    .prens-image {
+      width: 100%;
+      margin-top: 25px;
+      border-radius: 10px;
+      border: 2px solid #444;
+    }
+
+    .description {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #1f1f1f;
+      border-left: 5px solid #4CAF50;
+      border-radius: 6px;
+    }
+
+    .description h2 {
+      margin-top: 0;
+      color: #4CAF50;
+    }
+
+    .description p {
+      line-height: 1.8;
+      font-size: 17px;
+    }
+
+    #searchContainer {
+      padding: 20px;
+      text-align: center;
+    }
+
+    #searchBar {
+      padding: 10px;
+      width: 80%;
+      font-size: 16px;
+    }
+
+    #movieList {
+      padding: 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+      justify-content: center;
+    }
+
+    .movieCard {
+      background-color: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      color: #000;
+    }
+
+    .movieCard h3 {
+      margin: 0 0 10px 0;
+    }
+
+    .movieCard p {
+      font-size: 14px;
+      color: #555;
+    }
+
+    #movieDetail, .comments {
+      padding: 20px;
+      background-color: #1f1f1f;
+      margin-top: 20px;
+      border-radius: 8px;
+    }
+
+    #movieDetail h2, .comments h3 {
+      color: #4CAF50;
+    }
+
+    #movieDetail p {
+      font-size: 16px;
+      color: #ccc;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      margin-bottom: 10px;
+      border-radius: 4px;
+      background-color: #222;
+      color: #fff;
+      border: 1px solid #555;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #4CAF50;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #388E3C;
+    }
+
+    .comment {
+      background-color: #222;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>yerliyabancıfilmizle</h1>
+  </header>
+
+  <div class="container">
+    <iframe src="https://www.youtube.com/embed/BcUckd8Ox9I" allowfullscreen></iframe>
+
+    <img class="prens-image" src="https://www.blu.tv/uploads/images/series/660e33e3e9936.jpg" alt="Prens Dizisi">
+
+    <div class="description">
+      <h2>Prens Dizisi Konusu</h2>
+      <p>
+        BluTV'nin dikkat çeken dizisi <strong>Prens</strong>, yıllar boyunca taht beklentisiyle büyümüş bir Osmanlı şehzadesinin 
+        günümüzdeki İstanbul'a dönüşünü konu alıyor. Uzun yıllar İngiltere'de sürgünde kalan bu prens, bir anda modern dünyayla 
+        yüzleşmek zorunda kalır. Komedi ve tarih öğeleriyle dolu bu dizi, izleyiciye benzersiz bir deneyim sunuyor.
+      </p>
+    </div>
+
+    <!-- Arama Alanı -->
+    <div id="searchContainer">
+      <input type="text" id="searchBar" placeholder="Film Ara..." />
+    </div>
+
+    <div id="movieList"></div>
+
+    <div id="movieDetail">
+      <h2 id="movieTitle"></h2>
+      <p id="movieDescription"></p>
+      <a id="watchLink" href="#" target="_blank" style="color:#4CAF50;">Filmi İzle</a>
+    </div>
+
+    <div class="comments">
+      <h3>Yorumlar</h3>
+      <form onsubmit="addComment(event)">
+        <textarea id="commentInput" rows="4" placeholder="Yorumunuzu yazın..." required></textarea>
+        <button type="submit">Gönder</button>
+      </form>
+      <div class="comments-list" id="commentsList"></div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js"></script>
+
+  <script>
+    // Firebase Config (Firebase panelinden kendi bilgilerinle doldur)
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    // Film arama
+    document.getElementById("searchBar").addEventListener("input", () => {
+      const searchText = document.getElementById("searchBar").value.toLowerCase();
+      db.collection('movies').get().then(snapshot => {
+        let movies = [];
+        snapshot.forEach(doc => {
+          const movie = doc.data();
+          if (movie.title.toLowerCase().includes(searchText)) {
+            movie.id = doc.id;
+            movies.push(movie);
+          }
+        });
+        displayMovies(movies);
+      });
+    });
+
+    function displayMovies(movies) {
+      const movieList = document.getElementById("movieList");
+      movieList.innerHTML = '';
+      movies.forEach(movie => {
+        movieList.innerHTML += `
+          <div class="movieCard" onclick="showMovieDetails('${movie.id}')">
+            <h3>${movie.title}</h3>
+            <p>${movie.description}</p>
+          </div>
+        `;
+      });
+    }
+
+    function showMovieDetails(id) {
+      db.collection('movies').doc(id).get().then(doc => {
+        const movie = doc.data();
+        document.getElementById("movieTitle").textContent = movie.title;
+        document.getElementById("movieDescription").textContent = movie.description;
+        document.getElementById("watchLink").href = movie.link;
+      });
+    }
+
+    // Yorum Ekle
+    function addComment(event) {
+      event.preventDefault();
+      const commentText = document.getElementById('commentInput').value.trim();
+      if (commentText) {
+        const commentBox = document.createElement('div');
+        commentBox.className = 'comment';
+        commentBox.textContent = commentText;
+        document.getElementById('commentsList').prepend(commentBox);
+        document.getElementById('commentInput').value = '';
+      }
+    }
+  </script>
+
+</body>
+</html>
+<div id="otherMovies" style="background-color: #111; color: #eee; padding: 20px; text-align: center; border-top: 3px solid #4CAF50;">
+  <h2 style="color: #4CAF50; text-shadow: 0 0 5px #4CAF50, 0 0 10px #4CAF50;">Diğer Filmlerimizde Mevcut</h2>
+  
+  <!-- Buz Devri 3 -->
+  <div class="movieCard" style="margin-top: 20px; background-color: #222; padding: 20px; border-radius: 10px; border: 2px solid #444;">
+    <h3 style="color: #4CAF50;">Buz Devri 3: Dinozorların Yükselişi</h3>
+    <p style="color: #aaa; font-size: 16px;">Buz Devri 3, Scrat'ın meşe palamudu arayışı sırasında eski bir dünyaya, dinozorların yaşadığı bir yere düşmesiyle başlar. Manny, Sid ve Diego, arkadaşlarını kurtarmak için heyecan verici bir maceraya atılırlar.</p>
+    <a href="buz-devri-3-video.html" target="_blank" style="color: #4CAF50; text-decoration: none; font-size: 18px; border: 2px solid #4CAF50; padding: 10px 20px; border-radius: 5px;">Filmi İzle</a>
+  </div>
+</div>
