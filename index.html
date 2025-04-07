@@ -166,28 +166,8 @@
       </p>
     </div>
 
-    <!-- Arama Alanı -->
-    <div id="searchContainer">
-      <input type="text" id="searchBar" placeholder="Film Ara..." />
-    </div>
 
-    <div id="movieList"></div>
 
-    <div id="movieDetail">
-      <h2 id="movieTitle"></h2>
-      <p id="movieDescription"></p>
-      <a id="watchLink" href="#" target="_blank" style="color:#4CAF50;">Filmi İzle</a>
-    </div>
-
-    <div class="comments">
-      <h3>Yorumlar</h3>
-      <form onsubmit="addComment(event)">
-        <textarea id="commentInput" rows="4" placeholder="Yorumunuzu yazın..." required></textarea>
-        <button type="submit">Gönder</button>
-      </form>
-      <div class="comments-list" id="commentsList"></div>
-    </div>
-  </div>
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-app.js"></script>
@@ -195,81 +175,121 @@
   <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js"></script>
 
   <script>
-    // Firebase Config (Firebase panelinden kendi bilgilerinle doldur)
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_AUTH_DOMAIN",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_STORAGE_BUCKET",
-      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-      appId: "YOUR_APP_ID"
-    };
+  
+      <div id="searchContainer">
+        <input type="text" id="searchBar" placeholder="Film Ara..." />
+    </div>
 
-    const app = firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const auth = firebase.auth();
+    <div id="movieList"></div>
 
-    // Film arama
-    document.getElementById("searchBar").addEventListener("input", () => {
-      const searchText = document.getElementById("searchBar").value.toLowerCase();
-      db.collection('movies').get().then(snapshot => {
-        let movies = [];
-        snapshot.forEach(doc => {
-          const movie = doc.data();
-          if (movie.title.toLowerCase().includes(searchText)) {
-            movie.id = doc.id;
-            movies.push(movie);
-          }
-        });
-        displayMovies(movies);
-      });
-    });
+    <div id="commentSection">
+        <h3>Yorum yap </h3>
+        <textarea id="commentText" placeholder="Yorumunuzu buraya yazın..."></textarea>
+        <button onclick="submitComment()">Yorum Gönder</button>
+    </div>
 
-    function displayMovies(movies) {
-      const movieList = document.getElementById("movieList");
-      movieList.innerHTML = '';
-      movies.forEach(movie => {
-        movieList.innerHTML += `
-          <div class="movieCard" onclick="showMovieDetails('${movie.id}')">
-            <h3>${movie.title}</h3>
-            <p>${movie.description}</p>
-          </div>
-        `;
-      });
-    }
+    <div id="movieDetail">
+        <h2 id="movieTitle"></h2>
+        <p id="movieDescription"></p>
+        <a id="watchLink" href="#" target="_blank">Filmi İzle</a>
+    </div>
 
-    function showMovieDetails(id) {
-      db.collection('movies').doc(id).get().then(doc => {
-        const movie = doc.data();
-        document.getElementById("movieTitle").textContent = movie.title;
-        document.getElementById("movieDescription").textContent = movie.description;
-        document.getElementById("watchLink").href = movie.link;
-      });
-    }
+<!-- YORUMLAR ALANI BAŞLANGIÇ -->
+<div id="yorumlar-kutusu" style="margin-bottom: 20px;">
+  <h2 style="color: #39ff14; font-family: 'Arial Black', sans-serif;">Yorumlar</h2>
+  <form id="yorumFormu">
+    <input type="text" id="isim" placeholder="İsminiz" required style="width: 100%; padding: 10px; margin-bottom: 10px; background: #111; color: #39ff14; border: 1px solid #39ff14;">
+    <textarea id="yorum" placeholder="Yorumunuzu yazın..." required style="width: 100%; padding: 10px; background: #111; color: #39ff14; border: 1px solid #39ff14;"></textarea>
+    <button type="submit" style="margin-top: 10px; background: #39ff14; color: #000; padding: 10px 20px; border: none; font-weight: bold;">Gönder</button>
+  </form>
+  <div id="yorumlarListesi" style="margin-top: 20px;"></div>
+</div>
 
-    // Yorum Ekle
-    function addComment(event) {
-      event.preventDefault();
-      const commentText = document.getElementById('commentInput').value.trim();
-      if (commentText) {
-        const commentBox = document.createElement('div');
-        commentBox.className = 'comment';
-        commentBox.textContent = commentText;
-        document.getElementById('commentsList').prepend(commentBox);
-        document.getElementById('commentInput').value = '';
-      }
-    }
+<script>
+// Yorumları LocalStorage'a kaydet
+let yorumlar = JSON.parse(localStorage.getItem("yorumlar")) || [];
+
+function yorumGoster() {
+  const liste = document.getElementById("yorumlarListesi");
+  liste.innerHTML = "";
+  yorumlar.forEach((y, i) => {
+    const div = document.createElement("div");
+    div.style = "background: #111; border-left: 3px solid #39ff14; padding: 10px; margin-bottom: 10px;";
+    div.innerHTML = `<strong style="color:#39ff14;">${y.isim}</strong><p style="color:white;">${y.yorum}</p>`;
+    liste.appendChild(div);
+  });
+}
+
+document.getElementById("yorumFormu").addEventListener("submit", function(e) {
+  e.preventDefault();
+  const isim = document.getElementById("isim").value;
+  const yorum = document.getElementById("yorum").value;
+  yorumlar.push({ isim, yorum });
+  localStorage.setItem("yorumlar", JSON.stringify(yorumlar));
+  yorumGoster();
+  this.reset();
+});
+
+yorumGoster();
+</script>
+<!-- YORUMLAR ALANI BİTİŞ -->
+
+
+  
+<!-- YORUMLAR ALANI BAŞLANGIÇ -->
+<div id="yorumlar-kutusu" style="margin-bottom: 20px;">
+  <h2 style="color: #39ff14; font-family: 'Arial Black', sans-serif;">Yorumlar (yeni) </h2>
+  <form id="yorumFormu">
+    <input type="text" id="isim" placeholder="İsminiz" required style="width: 100%; padding: 10px; margin-bottom: 10px; background: #111; color: #39ff14; border: 1px solid #39ff14;">
+    <textarea id="yorum" placeholder="Yorumunuzu yazın..." required style="width: 100%; padding: 10px; background: #111; color: #39ff14; border: 1px solid #39ff14;"></textarea>
+    <button type="submit" style="margin-top: 10px; background: #39ff14; color: #000; padding: 10px 20px; border: none; font-weight: bold;">Gönder</button>
+  </form>
+  <div id="yorumlarListesi" style="margin-top: 20px;"></div>
+</div>
+
+<script>
+// Yorumları LocalStorage'a kaydet
+let yorumlar = JSON.parse(localStorage.getItem("yorumlar")) || [];
+
+function yorumGoster() {
+  const liste = document.getElementById("yorumlarListesi");
+  liste.innerHTML = "";
+  yorumlar.forEach((y, i) => {
+    const div = document.createElement("div");
+    div.style = "background: #111; border-left: 3px solid #39ff14; padding: 10px; margin-bottom: 10px;";
+    div.innerHTML = `<strong style="color:#39ff14;">${y.isim}</strong><p style="color:white;">${y.yorum}</p>`;
+    liste.appendChild(div);
+  });
+}
+
+document.getElementById("yorumFormu").addEventListener("submit", function(e) {
+  e.preventDefault();
+  const isim = document.getElementById("isim").value;
+  const yorum = document.getElementById("yorum").value;
+  yorumlar.push({ isim, yorum });
+  localStorage.setItem("yorumlar", JSON.stringify(yorumlar));
+  yorumGoster();
+  this.reset();
+});
+
+yorumGoster();
+</script>
+<!-- YORUMLAR ALANI BİTİŞ -->
+
+    </script>
+  
+  
+  
+
   </script>
 
 </body>
 </html>
 <div id="otherMovies" style="background-color: #111; color: #eee; padding: 20px; text-align: center; border-top: 3px solid #4CAF50;">
-  <h2 style="color: #4CAF50; text-shadow: 0 0 5px #4CAF50, 0 0 10px #4CAF50;">Diğer Filmlerimizde Mevcut</h2>
+  <h2 style="color: #4CAF50; text-shadow: 0 0 5px #4CAF50, 0 0 10px #4CAF50;">Diğer Filmlerimiz (çok yakında şuankiler açılmıyo olabilir)</h2>
   
-  <!-- Buz Devri 3 -->
-  <div class="movieCard" style="margin-top: 20px; background-color: #222; padding: 20px; border-radius: 10px; border: 2px solid #444;">
-    <h3 style="color: #4CAF50;">Buz Devri 3: Dinozorların Yükselişi</h3>
-    <p style="color: #aaa; font-size: 16px;">Buz Devri 3, Scrat'ın meşe palamudu arayışı sırasında eski bir dünyaya, dinozorların yaşadığı bir yere düşmesiyle başlar. Manny, Sid ve Diego, arkadaşlarını kurtarmak için heyecan verici bir maceraya atılırlar.</p>
-    <a href="buz-devri-3-video.html" target="_blank" style="color: #4CAF50; text-decoration: none; font-size: 18px; border: 2px solid #4CAF50; padding: 10px 20px; border-radius: 5px;">Filmi İzle</a>
-  </div>
-</div>
+<a href="buz-devri-3.html" target="_blank" rel="noopener noreferrer" style="display: inline-block; margin-top: 15px; color: #000; background: #39ff14; padding: 10px 20px; border-radius: 5px; text-decoration: none; font-weight: bold;">
+  Filmi İzle
+</a>
+ <!DOCTYPE html>
+<
